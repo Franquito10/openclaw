@@ -1,0 +1,15 @@
+[Unit]
+Description=OpenClaw Ops Worker (analyze)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/workspace/repo
+Environment=PYTHONPATH=%h/workspace/repo
+EnvironmentFile=-%h/workspace/repo/.env
+ExecStart=%h/workspace/repo/.venv/bin/python -m ops.worker_analyze
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target

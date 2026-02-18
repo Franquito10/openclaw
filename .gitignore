@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+*.egg
+
+# Environment
+.env
+*.env
+!.env.example
+
+# State & runtime data
+state/
+logs/
+events/
+artifacts/
+
+# Models lab (heavy, separate venv)
+models-lab/
+
+# Backup files
+*.bak
+*.bak_*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Database
+*.db
+*.sqlite3
+
+# backups with dot suffix
+*.bak.*
+
+# Claude local config (avoid absolute paths)
+.claude/settings.local.json
+.claude/agent-memory/

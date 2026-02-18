@@ -1,0 +1,336 @@
+#!/usr/bin/env python3
+import os
+import sys
+import glob
+import shlex
+import subprocess
+from pathlib import Path
+from datetime import datetime
+
+HOME = Path.home()
+BASE = HOME / "workspace"
+INBOX = BASE / "inbox"
+OUT = BASE / "outputs"
+LOGS = BASE / "logs"
+APPROVALS = BASE / "approvals"
+
+SERVICE_AGENT = "agent-mvp.service"
+
+def run(cmd, check=True, print_output=False):
+    p = subprocess.run(cmd, text=True, capture_output=True)
+    if print_output:
+        if p.stdout:
+            sys.stdout.write(p.stdout)
+        if p.stderr:
+            sys.stderr.write(p.stderr)
+    if check and p.returncode != 0:
+        sys.stderr.write(p.stderr or "")
+        sys.stderr.write(p.stdout or "")
+        sys.exit(p.returncode)
+    return p
+
+def die(msg, code=1):
+    sys.stderr.write(msg + "\n")
+    sys.exit(code)
+
+def ensure_dirs():
+    for d in (INBOX, OUT, LOGS, APPROVALS):
+        d.mkdir(parents=True, exist_ok=True)
+
+def nowstamp():
+    return datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+def cmd_status():
+    p = run(["systemctl", "--user", "status", SERVICE_AGENT, "--no-pager"], check=False)
+    sys.stdout.write(p.stdout or "")
+    sys.stdout.write(p.stderr or "")
+
+def cmd_restart():
+    run(["systemctl", "--user", "daemon-reload"], check=False)
+    run(["systemctl", "--user", "restart", SERVICE_AGENT])
+    cmd_status()
+
+def cmd_logs(n="80"):
+    # 1) Logs de systemd/journal
+    run(
+        ["journalctl", "--user", "-u", SERVICE_AGENT, "-n", str(n), "--no-pager"],
+        check=False,
+        print_output=True,
+    )
+
+    # 2) Log en disco (si existe)
+    logfile = LOGS / "agent_mvp.log"
+    if logfile.exists():
+        print("\n--- tail logs/agent_mvp.log ---")
+        run(["tail", "-n", str(n), str(logfile)], check=False, print_output=True)
+
+def cmd_submit(text, strict=False, name=None):
+    ensure_dirs()
+    if not name:
+        name = f"task_{nowstamp()}.txt"
+    if not name.endswith(".txt"):
+        name += ".txt"
+    path = INBOX / name
+    payload = f"STRICT: {text}\n" if strict else f"{text}\n"
+    path.write_text(payload, encoding="utf-8")
+    print(f"OK -> {path}")
+
+def cmd_exec(cmd, name=None):
+    ensure_dirs()
+    if not name:
+        name = f"exec_{nowstamp()}.txt"
+    if not name.endswith(".txt"):
+        name += ".txt"
+    path = INBOX / name
+    path.write_text(f"EXEC: {cmd}\n", encoding="utf-8")
+    print(f"OK -> {path}")
+    print(f"Para aprobar: touch {APPROVALS / (Path(name).stem + '.ok')}")
+
+def cmd_approve(stem):
+    ensure_dirs()
+    ok = APPROVALS / (stem + ".ok")
+    ok.touch()
+    print(f"APPROVED -> {ok}")
+
+def cmd_ls_inbox():
+    ensure_dirs()
+    files = sorted(INBOX.glob("*.txt"))
+    for f in files:
+        print(f.name)
+
+def cmd_ls_outputs(n="20"):
+    ensure_dirs()
+    files = sorted(OUT.glob("*.md"), key=lambda p: p.stat().st_mtime, reverse=True)[: int(n)]
+    for f in files:
+        print(f.name)
+
+def cmd_last(n="10"):
+    ensure_dirs()
+    files = sorted(OUT.glob("*.md"), key=lambda p: p.stat().st_mtime, reverse=True)[: int(n)]
+    for f in files:
+        print(f.name)
+
+def find_latest_for_stem(stem: str, want_exec: bool):
+    """
+    Busca el output más reciente para un stem:
+      - normal:   <stem>__YYYY... .md
+      - exec:     <stem>__YYYY...__EXEC.md
+    """
+    ensure_dirs()
+    if want_exec:
+        pattern = f"{stem}__*__EXEC.md"
+    else:
+        pattern = f"{stem}__*.md"
+    matches = sorted(glob.glob(str(OUT / pattern)), key=os.path.getmtime)
+    return matches[-1] if matches else None
+
+def cmd_wait(stem: str, want_exec: bool = False, timeout: int = 30, interval: float = 1.0):
+    """
+    Espera hasta que aparezca el output del stem y lo imprime.
+    """
+    ensure_dirs()
+    start = datetime.now().timestamp()
+    while True:
+        hit = find_latest_for_stem(stem, want_exec)
+        if hit:
+            print(f"--- {hit} ---")
+            run(["sed", "-n", "1,200p", hit], check=False, print_output=True)
+            return
+
+        if (datetime.now().timestamp() - start) >= timeout:
+            kind = "EXEC" if want_exec else "MD"
+            die(f"Timeout ({timeout}s): no apareció output {kind} para stem '{stem}'. Mirá: openclaw outputs 20")
+
+        subprocess.run(["sleep", str(interval)], capture_output=True, text=True)
+
+# -------------------------
+# MATERIALIZE (nuevo)
+# -------------------------
+
+def latest_output_for_stem(stem: str):
+    ensure_dirs()
+    pattern = f"{stem}__*.md"
+    matches = sorted(glob.glob(str(OUT / pattern)), key=os.path.getmtime)
+    return matches[-1] if matches else None
+
+def extract_html_from_md(md_path: str) -> str:
+    data = Path(md_path).read_text(encoding="utf-8", errors="ignore")
+    import re
+    m = re.search(r"(<!DOCTYPE html>.*?</html>)", data, flags=re.S)
+    if not m:
+        die(f"No encontré bloque HTML completo en: {md_path}")
+    return m.group(1)
+
+def cmd_materialize(stem: str, dest: str = None):
+    ensure_dirs()
+    md = latest_output_for_stem(stem)
+    if not md:
+        die(f"No encontré outputs para stem '{stem}'. Probá: openclaw outputs 30")
+    html = extract_html_from_md(md)
+    if not dest:
+        dest = str((BASE / "repo" / "index.html"))
+    Path(dest).write_text(html, encoding="utf-8")
+    print(f"WROTE -> {dest}")
+    print(f"FROM  -> {md}")
+
+# -------------------------
+
+def cmd_tail_output(pattern):
+    ensure_dirs()
+    matches = sorted(glob.glob(str(OUT / pattern)), key=os.path.getmtime)
+    if not matches:
+        die(f"No encontré outputs con patrón: {pattern}")
+    last = matches[-1]
+    print(f"--- {last} ---")
+    run(["sed", "-n", "1,200p", last], check=False)
+
+def help_text():
+    return """openclaw (tu orquestador local)
+
+Uso:
+  openclaw status
+  openclaw restart
+  openclaw logs [N]
+
+  openclaw submit "texto de tarea" [--strict] [--name archivo.txt]
+  openclaw exec "comando shell" [--name archivo.txt]
+  openclaw approve <stem_sin_.txt>   (ej: exec_ls)
+
+  openclaw inbox
+  openclaw outputs [N]
+  openclaw last [N]
+  openclaw wait <stem> [--exec] [--timeout N] [--interval S]
+  openclaw materialize <stem> [--dest /ruta/index.html]
+  openclaw out "patron"   (ej: 'test_claude__*.md')
+
+Ejemplos:
+  openclaw submit "Armá un checklist..." --name tarea_real.txt
+  openclaw submit "Respondé SOLO OK" --strict --name prueba.txt
+  openclaw exec "ls -lah ~/workspace" --name exec_ls.txt
+  openclaw approve exec_ls
+  openclaw wait exec_ls --exec --timeout 60
+  openclaw materialize coder_index3
+  openclaw materialize coder_index3 --dest /home/agent/workspace/repo/landing.html
+  openclaw out "exec_ls__*__EXEC.md"
+"""
+
+def main():
+    args = sys.argv[1:]
+    if not args or args[0] in ("-h", "--help", "help"):
+        print(help_text().strip())
+        return
+
+    cmd = args[0]
+
+    if cmd == "status":
+        cmd_status()
+        return
+
+    if cmd == "restart":
+        cmd_restart()
+        return
+
+    if cmd == "logs":
+        n = args[1] if len(args) > 1 else "80"
+        cmd_logs(n)
+        return
+
+    if cmd == "submit":
+        strict = "--strict" in args
+        name = None
+        if "--name" in args:
+            i = args.index("--name")
+            if i + 1 >= len(args):
+                die("Falta valor para --name")
+            name = args[i + 1]
+            cleaned = [a for j, a in enumerate(args[1:]) if (j + 1) not in (i, i + 1)]
+            text = " ".join(cleaned).replace("--strict", "").strip().strip('"').strip("'")
+        else:
+            text = " ".join(args[1:]).replace("--strict", "").strip().strip('"').strip("'")
+
+        if not text:
+            die('submit requiere texto. Ej: openclaw submit "hola"')
+        cmd_submit(text, strict=strict, name=name)
+        return
+
+    if cmd == "exec":
+        name = None
+        if "--name" in args:
+            i = args.index("--name")
+            if i + 1 >= len(args):
+                die("Falta valor para --name")
+            name = args[i + 1]
+            cleaned = [a for j, a in enumerate(args[1:]) if (j + 1) not in (i, i + 1)]
+            text = " ".join(cleaned).strip().strip('"').strip("'")
+        else:
+            text = " ".join(args[1:]).strip().strip('"').strip("'")
+        if not text:
+            die('exec requiere comando. Ej: openclaw exec "ls -lah"')
+        cmd_exec(text, name=name)
+        return
+
+    if cmd == "approve":
+        if len(args) < 2:
+            die("approve requiere el stem. Ej: openclaw approve exec_ls")
+        cmd_approve(args[1])
+        return
+
+    if cmd == "inbox":
+        cmd_ls_inbox()
+        return
+
+    if cmd == "outputs":
+        n = args[1] if len(args) > 1 else "20"
+        cmd_ls_outputs(n)
+        return
+
+    if cmd == "last":
+        n = args[1] if len(args) > 1 else "10"
+        cmd_last(n)
+        return
+
+    if cmd == "wait":
+        if len(args) < 2:
+            die("wait requiere stem. Ej: openclaw wait test_cli_claude")
+        stem = args[1]
+        want_exec = "--exec" in args
+        timeout = 30
+        interval = 1.0
+
+        if "--timeout" in args:
+            i = args.index("--timeout")
+            if i + 1 >= len(args):
+                die("Falta valor para --timeout")
+            timeout = int(args[i + 1])
+
+        if "--interval" in args:
+            i = args.index("--interval")
+            if i + 1 >= len(args):
+                die("Falta valor para --interval")
+            interval = float(args[i + 1])
+
+        cmd_wait(stem, want_exec=want_exec, timeout=timeout, interval=interval)
+        return
+
+    if cmd == "materialize":
+        if len(args) < 2:
+            die("materialize requiere stem. Ej: openclaw materialize coder_index3")
+        dest = None
+        if "--dest" in args:
+            i = args.index("--dest")
+            if i + 1 >= len(args):
+                die("Falta valor para --dest")
+            dest = args[i + 1]
+        cmd_materialize(args[1], dest=dest)
+        return
+
+    if cmd == "out":
+        if len(args) < 2:
+            die('out requiere patrón. Ej: openclaw out "tarea__*.md"')
+        cmd_tail_output(args[1])
+        return
+
+    die(f"Comando desconocido: {cmd}\n\n{help_text()}")
+
+if __name__ == "__main__":
+    main()

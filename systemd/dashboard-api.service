@@ -1,0 +1,15 @@
+[Unit]
+Description=OpenClaw Dashboard API
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/workspace/repo
+Environment=PYTHONPATH=%h/workspace/repo
+EnvironmentFile=-%h/workspace/repo/.env
+ExecStart=%h/workspace/repo/.venv/bin/python dashboard_api.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nova - Plataforma Digital</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%236c5ce7'/%3E%3Cstop offset='1' stop-color='%23a29bfe'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%230a0a0f'/%3E%3Cpath d='M18 44 L26 20 L34 44 L42 20 L50 44' stroke='url(%23g)' stroke-width='5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--surface:#12121a;--card:#1a1a26;--border:#2a2a3a;--text:#e4e4ed;--muted:#8888a0;--accent:#6c5ce7;--accent-light:#a29bfe;--white:#ffffff;--gradient:linear-gradient(135deg,#6c5ce7,#a29bfe)}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+ul{list-style:none}
+
+nav{position:fixed;top:0;left:0;width:100%;padding:1.25rem 2rem;display:flex;justify-content:space-between;align-items:center;z-index:1000;background:rgba(10,10,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);transition:padding 0.3s}
+nav.scrolled{padding:0.75rem 2rem}
+.logo{font-size:1.5rem;font-weight:800;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.5px}
+.nav-links{display:flex;gap:2rem;align-items:center}
+.nav-links a{color:var(--muted);font-size:0.9rem;font-weight:500;transition:color 0.3s}
+.nav-links a:hover{color:var(--white)}
+.nav-cta{background:var(--accent);color:var(--white) !important;padding:0.5rem 1.25rem;border-radius:8px;font-size:0.85rem;font-weight:600;transition:transform 0.3s,box-shadow 0.3s}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(108,92,231,0.4)}
+.menu-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:8rem 2rem 4rem;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(ellipse at center,rgba(108,92,231,0.08) 0%,transparent 60%);pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:0.5rem;padding:0.4rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:100px;font-size:0.8rem;color:var(--accent-light);margin-bottom:2rem;animation:fadeUp 0.8s ease}
+.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+.hero h1{font-size:clamp(2.5rem,6vw,5rem);font-weight:800;line-height:1.1;margin-bottom:1.5rem;animation:fadeUp 0.8s ease 0.1s both;letter-spacing:-1.5px;color:var(--white)}
+.hero h1 .highlight{background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:clamp(1rem,2vw,1.25rem);color:var(--muted);max-width:600px;margin-bottom:2.5rem;animation:fadeUp 0.8s ease 0.2s both}
+.hero-buttons{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;animation:fadeUp 0.8s ease 0.3s both}
+.btn-primary{background:var(--gradient);color:var(--white);padding:0.9rem 2rem;border-radius:10px;font-size:1rem;font-weight:600;border:none;cursor:pointer;transition:transform 0.3s,box-shadow 0.3s}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(108,92,231,0.35)}
+.btn-secondary{background:transparent;color:var(--text);padding:0.9rem 2rem;border-radius:10px;font-size:1rem;font-weight:600;border:1px solid var(--border);cursor:pointer;transition:border-color 0.3s,background 0.3s}
+.btn-secondary:hover{border-color:var(--accent);background:rgba(108,92,231,0.08)}
+.hero-stats{display:flex;gap:3rem;margin-top:4rem;animation:fadeUp 0.8s ease 0.4s both}
+.stat{text-align:center}
+.stat-number{font-size:1.75rem;font-weight:800;color:var(--white)}
+.stat-label{font-size:0.8rem;color:var(--muted);margin-top:0.2rem}
+
+.features{padding:6rem 2rem;max-width:1100px;margin:0 auto}
+.section-label{display:inline-block;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--accent-light);margin-bottom:1rem}
+.section-title{font-size:clamp(1.75rem,4vw,2.75rem);font-weight:800;margin-bottom:1rem;letter-spacing:-1px;color:var(--white)}
+.section-desc{color:var(--muted);max-width:500px;margin-bottom:3rem;font-size:1.05rem}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+.feature-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:2rem;transition:transform 0.3s,border-color 0.3s,box-shadow 0.3s}
+.feature-card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 8px 30px rgba(108,92,231,0.1)}
+.feature-icon{width:48px;height:48px;border-radius:12px;background:rgba(108,92,231,0.12);display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:1.25rem}
+.feature-card h3{font-size:1.15rem;font-weight:700;margin-bottom:0.6rem;color:var(--white)}
+.feature-card p{font-size:0.9rem;color:var(--muted);line-height:1.6}
+
+.testimonials{padding:6rem 2rem;background:var(--surface)}
+.testimonials .inner{max-width:1100px;margin:0 auto}
+.testimonials-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+.testimonial-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;transition:transform 0.3s}
+.testimonial-card:hover{transform:translateY(-3px)}
+.stars{color:#f9ca24;font-size:0.85rem;margin-bottom:1rem;letter-spacing:2px}
+.testimonial-card blockquote{font-size:0.95rem;color:var(--text);line-height:1.7;margin-bottom:1.5rem;font-style:italic}
+.testimonial-author{display:flex;align-items:center;gap:0.75rem}
+.author-avatar{width:40px;height:40px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:var(--white)}
+.author-info strong{display:block;font-size:0.85rem;color:var(--white)}
+.author-info span{font-size:0.75rem;color:var(--muted)}
+
+.pricing{padding:6rem 2rem;max-width:1100px;margin:0 auto;text-align:center}
+.pricing .section-desc{margin-left:auto;margin-right:auto}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:3rem}
+.pricing-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:2.5rem 2rem;text-align:left;position:relative;transition:transform 0.3s,border-color 0.3s}
+.pricing-card:hover{transform:translateY(-4px)}
+.pricing-card.popular{border-color:var(--accent);box-shadow:0 0 40px rgba(108,92,231,0.12)}
+.popular-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gradient);color:var(--white);font-size:0.7rem;font-weight:700;padding:0.3rem 1rem;border-radius:100px;text-transform:uppercase;letter-spacing:1px}
+.plan-name{font-size:0.9rem;font-weight:600;color:var(--muted);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:1px}
+.plan-price{font-size:2.75rem;font-weight:800;color:var(--white);margin-bottom:0.25rem}
+.plan-price span{font-size:1rem;font-weight:400;color:var(--muted)}
+.plan-desc{font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
+.plan-features{margin-bottom:2rem}
+.plan-features li{font-size:0.88rem;color:var(--text);padding:0.4rem 0;display:flex;align-items:center;gap:0.6rem}
+.plan-features li::before{content:'\2713';color:var(--accent-light);font-weight:700;font-size:0.8rem}
+.plan-btn{display:block;width:100%;padding:0.85rem;border-radius:10px;font-size:0.9rem;font-weight:600;text-align:center;cursor:pointer;border:none;transition:transform 0.3s,box-shadow 0.3s}
+.plan-btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
+.plan-btn-outline:hover{border-color:var(--accent);background:rgba(108,92,231,0.08)}
+.plan-btn-fill{background:var(--gradient);color:var(--white)}
+.plan-btn-fill:hover{transform:translateY(-2px);box-shadow:0 6px 25px rgba(108,92,231,0.35)}
+
+footer{padding:4rem 2rem 2rem;border-top:1px solid var(--border);background:var(--bg)}
+.footer-inner{max-width:1100px;margin:0 auto}
+.footer-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:2rem;margin-bottom:3rem}
+.footer-brand .logo{font-size:1.3rem;margin-bottom:0.75rem;display:inline-block}
+.footer-brand p{font-size:0.85rem;color:var(--muted);max-width:280px;line-height:1.6}
+.footer-col h4{font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--white);margin-bottom:1rem}
+.footer-col a{display:block;font-size:0.85rem;color:var(--muted);padding:0.3rem 0;transition:color 0.3s}
+.footer-col a:hover{color:var(--accent-light)}
+.footer-bottom{display:flex;justify-content:space-between;align-items:center;padding-top:2rem;border-top:1px solid var(--border);font-size:0.8rem;color:var(--muted)}
+
+/* === Tareas Recientes === */
+.recent-tasks {
+  padding: 6rem 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.recent-tasks-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+.recent-tasks-header .section-title {
+  margin-bottom: 0;
+}
+.btn-ver-todas {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.4rem;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--accent-light);
+  background: rgba(108, 92, 231, 0.08);
+  border: 1px solid rgba(108, 92, 231, 0.25);
+  cursor: pointer;
+  transition: background 0.3s, border-color 0.3s, transform 0.3s;
+}
+.btn-ver-todas:hover {
+  background: rgba(108, 92, 231, 0.16);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+.btn-ver-todas::after {
+  content: '\2192';
+  font-size: 1rem;
+  transition: transform 0.3s;
+}
+.btn-ver-todas:hover::after {
+  transform: translateX(3px);
+}
+.recent-tasks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+.task-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+  cursor: default;
+}
+.task-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+  box-shadow: 0 8px 30px rgba(108, 92, 231, 0.1);
+}
+.task-card-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.task-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.task-card-meta .dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-light);
+  flex-shrink: 0;
+}
+.task-card-preview {
+  font-size: 0.84rem;
+  color: var(--muted);
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.task-card-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 768px) {
+  .recent-tasks-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* === Fin Tareas Recientes === */
+/* === MAPA (GRAFO) === */
+.graph-wrap{
+  padding: 6rem 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.graph-card{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.graph-topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.graph-topbar .left{
+  display:flex;
+  align-items:center;
+  gap: .75rem;
+}
+.pill{
+  font-size: .78rem;
+  color: var(--accent-light);
+  background: rgba(108,92,231,.10);
+  border: 1px solid rgba(108,92,231,.25);
+  padding: .25rem .6rem;
+  border-radius: 999px;
+}
+.graph-actions{
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+}
+.btn-small{
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  padding: .55rem .8rem;
+  border-radius: 10px;
+  font-size: .85rem;
+  cursor:pointer;
+}
+.btn-small:hover{
+  border-color: var(--accent);
+  background: rgba(108,92,231,.08);
+}
+.graph-canvas{
+  height: 540px;
+  width: 100%;
+}
+.graph-note{
+  padding: .9rem 1.25rem;
+  color: var(--muted);
+  font-size: .85rem;
+  border-top: 1px solid var(--border);
+}
+
+/* === Recent tasks: NEW badge + glow === */
+.task-card.is-new {
+  border-color: rgba(108,92,231,.7) !important;
+  box-shadow: 0 0 0 1px rgba(108,92,231,.35), 0 18px 60px rgba(108,92,231,.12);
+}
+
+.task-badge-new {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: .35rem .6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(108,92,231,.45);
+  background: rgba(108,92,231,.12);
+  color: rgba(232,228,255,.95);
+}
+
+.task-badge-new .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #6c5ce7;
+  box-shadow: 0 0 10px rgba(108,92,231,.55);
+}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.reveal{opacity:0;transform:translateY(30px);transition:opacity 0.7s ease,transform 0.7s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+@media(max-width:768px){
+  .nav-links{display:none;position:absolute;top:100%;left:0;width:100%;background:var(--surface);flex-direction:column;padding:1.5rem;gap:1rem;border-bottom:1px solid var(--border)}
+  .nav-links.open{display:flex}
+  .menu-toggle{display:block}
+  .hero-stats{gap:1.5rem}
+  .features-grid,.testimonials-grid,.pricing-grid{grid-template-columns:1fr}
+  .footer-top{grid-template-columns:1fr 1fr}
+}
+@media(max-width:480px){
+  .hero-stats{flex-direction:column;gap:1rem}
+  .hero-buttons{flex-direction:column;width:100%;max-width:320px}
+  .footer-top{grid-template-columns:1fr}
+}
+</style>
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+</head>
+<body>
+
+<nav id="navbar">
+  <div class="logo">Nova</div>
+  <div class="nav-links" id="navLinks">
+    <a href="#features">Funciones</a>
+    <a href="#testimonials">Testimonios</a>
+    <a href="#pricing">Precios</a>
+    <a href="#pricing" class="nav-cta">Empezar gratis</a>
+  </div>
+  <button class="menu-toggle" id="menuToggle" aria-label="Menu">&#9776;</button>
+</nav>
+
+<section class="hero">
+  <div class="hero-badge">Nuevo: Integraciones con IA disponibles</div>
+  <h1>Tu negocio en<br><span class="highlight">otro nivel digital</span></h1>
+  <p>Plataforma todo-en-uno para lanzar, gestionar y escalar tu proyecto. Simple, potente y sin complicaciones.</p>
+  <div class="hero-buttons">
+    <button class="btn-primary" onclick="document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">Comenzar ahora</button>
+    <button class="btn-secondary" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">Ver funciones</button>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-number">12K+</div><div class="stat-label">Usuarios activos</div></div>
+    <div class="stat"><div class="stat-number">99.9%</div><div class="stat-label">Uptime</div></div>
+    <div class="stat"><div class="stat-number">4.9</div><div class="stat-label">Rating promedio</div></div>
+  </div>
+</section>
+
+<section style="padding:4rem 2rem; max-width:1100px; margin:0 auto">
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px">
+    <h2 style="margin:0; font-size:1.2rem">OpenClaw Dashboard</h2>
+    <div style="font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:.9rem; color:#aaa">
+      Service: <b id="svc" style="color:#fff">...</b>
+      <span id="svcDot" style="display:inline-block;width:8px;height:8px;border-radius:99px;background:#666;margin-left:8px;vertical-align:middle"></span>
+    </div>
+  </div>
+
+<div style="margin: 14px 0 10px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+  <input id="taskName" value="tarea_web_1.txt"
+    style="flex:1; min-width:220px; padding:10px 12px; border-radius:12px; border:1px solid #2a2a3a; background:rgba(255,255,255,.02); color:#e4e4ed; outline:none" />
+  <button id="sendTask"
+    style="padding:10px 14px; border-radius:12px; border:none; cursor:pointer; font-weight:700; background:linear-gradient(135deg,#6c5ce7,#a29bfe); color:white;">
+    Enviar tarea
+  </button>
+</div>
+
+<textarea id="taskText" rows="6" placeholder='@coder: TU ÚNICA SALIDA...'
+style="width:100%; padding:12px; border-radius:12px; border:1px solid #2a2a3a; background:rgba(255,255,255,.02); color:#e4e4ed; outline:none; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;"></textarea>
+
+<div id="taskMsg" style="margin-top:8px; color:#888; font-size:.9rem;"></div>
+
+  <section class="recent-tasks reveal">
+  <div class="recent-tasks-header">
+    <div>
+      <h2 class="section-title">Tareas recientes</h2>
+      <p class="section-subtitle">Últimos outputs generados por el agente.</p>
+    </div>
+  </div>
+
+  <div id="recentTasksGrid" class="recent-tasks-grid"></div>
+</section>
+<section class="graph-wrap" id="mapa">
+  <span class="section-label">VISUAL</span>
+  <h2 class="section-title">Mapa de ejecución</h2>
+  <p class="section-desc">Nodos = agentes / outputs. Links = flujo. Se actualiza automático.</p>
+
+  <div class="graph-card">
+    <div class="graph-topbar">
+      <div class="left">
+        <strong style="color:var(--white); font-size:.95rem">Graph</strong>
+        <span class="pill" id="graph-status">cargando…</span>
+      </div>
+      <div class="graph-actions">
+        <button class="btn-small" id="graph-refresh">Actualizar</button>
+        <button class="btn-small" id="graph-fit">Centrar</button>
+      </div>
+    </div>
+
+    <div id="graph" class="graph-canvas"></div>
+
+    <div class="graph-note">
+      Tip: rueda para zoom, arrastrá para mover, clic para resaltar conexiones.
+    </div>
+  </div>
+</section>
+
+
+  <div style="display:flex; gap:16px; flex-wrap:wrap">
+    <div style="flex:1; min-width:280px; border:1px solid #2a2a3a; background:#12121a; padding:12px; border-radius:14px">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px">
+        <h3 style="margin:0; font-size:1rem">Outputs</h3>
+        <span id="outCount" style="font-size:.85rem; color:#888">0</span>
+      </div>
+      <div id="outputs" style="display:flex; flex-direction:column; gap:6px"></div>
+    </div>
+
+    <div style="flex:2; min-width:320px; border:1px solid #2a2a3a; background:#0a0a0f; padding:12px; border-radius:14px">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px">
+        <h3 style="margin:0; font-size:1rem">Viewer</h3>
+        <span id="viewName" style="font-size:.85rem; color:#888">—</span>
+      </div>
+      <pre id="viewer" style="margin:0; white-space:pre-wrap; word-break:break-word; max-height:70vh; overflow:auto; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:.85rem; color:#cfcfe6"></pre>
+    </div>
+  </div>
+</section>
+
+
+<section class="features" id="features">
+  <div class="reveal">
+    <span class="section-label">Funciones</span>
+    <h2 class="section-title">Todo lo que necesitas</h2>
+    <p class="section-desc">Herramientas pensadas para que te enfoques en lo que importa: hacer crecer tu negocio.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card reveal">
+      <div class="feature-icon">&#9889;</div>
+      <h3>Velocidad extrema</h3>
+      <p>Infraestructura global con tiempos de carga menores a 100ms. Tu sitio siempre rapido.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon">&#128274;</div>
+      <h3>Seguridad total</h3>
+      <p>Cifrado de extremo a extremo, autenticacion 2FA y monitoreo 24/7 incluidos sin costo extra.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon">&#128200;</div>
+      <h3>Analytics integrado</h3>
+      <p>Dashboard en tiempo real con metricas que importan. Toma decisiones basadas en datos reales.</p>
+    </div>
+  </div>
+</section>
+
+<section class="testimonials" id="testimonials">
+  <div class="inner">
+    <div class="reveal" style="text-align:center;margin-bottom:3rem">
+      <span class="section-label">Testimonios</span>
+      <h2 class="section-title">Lo que dicen nuestros usuarios</h2>
+    </div>
+    <div class="testimonials-grid">
+      <div class="testimonial-card reveal">
+        <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <blockquote>"Migramos todo a Nova en una tarde. La diferencia en rendimiento fue inmediata. Increible."</blockquote>
+        <div class="testimonial-author">
+          <div class="author-avatar">ML</div>
+          <div class="author-info"><strong>Martina Lopez</strong><span>CTO, Fintech Latam</span></div>
+        </div>
+      </div>
+      <div class="testimonial-card reveal">
+        <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <blockquote>"El soporte es excepcional. Cualquier duda se resuelve en minutos. Muy recomendable."</blockquote>
+        <div class="testimonial-author">
+          <div class="author-avatar">DR</div>
+          <div class="author-info"><strong>Diego Ruiz</strong><span>Founder, StartupBA</span></div>
+        </div>
+      </div>
+      <div class="testimonial-card reveal">
+        <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <blockquote>"Pasamos de 3 herramientas distintas a solo Nova. Simplifico todo y ahorramos un 40%."</blockquote>
+        <div class="testimonial-author">
+          <div class="author-avatar">VS</div>
+          <div class="author-info"><strong>Valentina Silva</strong><span>Head of Ops, DigitalCo</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="recent-tasks" id="recent-tasks">
+  <div class="recent-tasks-header reveal">
+    <div>
+      <span class="section-label">Actividad</span>
+      <h2 class="section-title">Tareas recientes</h2>
+    </div>
+    <button class="btn-ver-todas" onclick="document.querySelector('#outputs').scrollIntoView({behavior:'smooth'})">Ver todas</button>
+  </div>
+  <div class="recent-tasks-grid" id="recentTasksGrid">
+    <div class="task-card-empty">Cargando tareas...</div>
+  </div>
+</section>
+
+<section class="pricing" id="pricing">
+  <div class="reveal">
+    <span class="section-label">Precios</span>
+    <h2 class="section-title">Planes para cada etapa</h2>
+    <p class="section-desc">Sin contratos. Sin sorpresas. Cancela cuando quieras.</p>
+  </div>
+  <div class="pricing-grid">
+    <div class="pricing-card reveal">
+      <div class="plan-name">Starter</div>
+      <div class="plan-price">$0 <span>/ mes</span></div>
+      <div class="plan-desc">Ideal para proyectos personales y pruebas.</div>
+      <ul class="plan-features">
+        <li>1 proyecto</li>
+        <li>5GB almacenamiento</li>
+        <li>Analytics basico</li>
+        <li>Soporte por email</li>
+      </ul>
+      <button class="plan-btn plan-btn-outline">Empezar gratis</button>
+    </div>
+    <div class="pricing-card popular reveal">
+      <div class="popular-badge">Mas elegido</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">$29 <span>/ mes</span></div>
+      <div class="plan-desc">Para equipos que necesitan escalar rapido.</div>
+      <ul class="plan-features">
+        <li>10 proyectos</li>
+        <li>100GB almacenamiento</li>
+        <li>Analytics avanzado</li>
+        <li>Soporte prioritario</li>
+        <li>Integraciones API</li>
+      </ul>
+      <button class="plan-btn plan-btn-fill">Elegir Pro</button>
+    </div>
+    <div class="pricing-card reveal">
+      <div class="plan-name">Enterprise</div>
+      <div class="plan-price">$99 <span>/ mes</span></div>
+      <div class="plan-desc">Control total para organizaciones grandes.</div>
+      <ul class="plan-features">
+        <li>Proyectos ilimitados</li>
+        <li>1TB almacenamiento</li>
+        <li>Analytics + IA</li>
+        <li>Soporte dedicado 24/7</li>
+        <li>SLA garantizado</li>
+        <li>SSO y auditoria</li>
+      </ul>
+      <button class="plan-btn plan-btn-outline">Contactar ventas</button>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="logo">Nova</div>
+        <p>Plataforma digital todo-en-uno para lanzar y escalar tu negocio sin fricciones.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Producto</h4>
+        <a href="#features">Funciones</a>
+        <a href="#pricing">Precios</a>
+        <a href="#">Changelog</a>
+        <a href="#">Documentacion</a>
+      </div>
+      <div class="footer-col">
+        <h4>Empresa</h4>
+        <a href="#">Nosotros</a>
+        <a href="#">Blog</a>
+        <a href="#">Carreras</a>
+        <a href="#">Contacto</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="#">Privacidad</a>
+        <a href="#">Terminos</a>
+        <a href="#">Cookies</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>2026 Nova. Todos los derechos reservados.</span>
+      <span>Hecho con cuidado desde Latinoamerica.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+var nav=document.getElementById('navbar');
+window.addEventListener('scroll',function(){nav.classList.toggle('scrolled',window.scrollY>50)});
+document.getElementById('menuToggle').addEventListener('click',function(){document.getElementById('navLinks').classList.toggle('open')});
+document.querySelectorAll('.nav-links a').forEach(function(a){a.addEventListener('click',function(){document.getElementById('navLinks').classList.remove('open')})});
+var observer=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target)}})},{threshold:0.1,rootMargin:'0px 0px -50px 0px'});
+document.querySelectorAll('.reveal').forEach(function(el){observer.observe(el)});
+document.querySelectorAll('a[href^="#"]').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();var t=document.querySelector(a.getAttribute('href'));if(t)t.scrollIntoView({behavior:'smooth'})})});
+</script>
+<script>
+(() => {
+  const API = "http://127.0.0.1:8787";
+
+  const $ = (s) => document.querySelector(s);
+  const svc = $("#svc");
+  const svcDot = $("#svcDot");
+  const outputs = $("#outputs");
+  const viewer = $("#viewer");
+  const outCount = $("#outCount");
+  const viewName = $("#viewName");
+
+  async function j(url, opts) {
+    const r = await fetch(url, opts);
+    return r.json();
+  }
+
+  function setService(active) {
+    svc.textContent = active ? "ONLINE" : "OFFLINE";
+    svc.style.color = active ? "#3fb950" : "#f85149";
+    svcDot.style.background = active ? "#3fb950" : "#f85149";
+    svcDot.style.boxShadow = active ? "0 0 10px rgba(63,185,80,.55)" : "0 0 10px rgba(248,81,73,.35)";
+  }
+
+  function fileRow(f) {
+    const row = document.createElement("button");
+    row.type = "button";
+    row.style.textAlign = "left";
+    row.style.border = "1px solid #2a2a3a";
+    row.style.background = "rgba(255,255,255,.02)";
+    row.style.color = "#e4e4ed";
+    row.style.padding = "10px 10px";
+    row.style.borderRadius = "12px";
+    row.style.cursor = "pointer";
+    row.style.fontFamily = "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
+    row.style.fontSize = ".8rem";
+    row.style.display = "flex";
+    row.style.justifyContent = "space-between";
+    row.style.gap = "10px";
+    row.onmouseenter = () => row.style.borderColor = "#6c5ce7";
+    row.onmouseleave = () => row.style.borderColor = "#2a2a3a";
+
+    const left = document.createElement("span");
+    left.textContent = f.name;
+
+    const right = document.createElement("span");
+    right.style.color = "#888";
+    right.textContent = `${Math.round((f.size || 0)/1024)}KB`;
+
+    row.appendChild(left);
+    row.appendChild(right);
+
+    row.onclick = async () => {
+      viewName.textContent = f.name;
+      viewer.textContent = "Cargando...";
+      try {
+        const o = await j(API + "/api/out/" + encodeURIComponent(f.name));
+        viewer.textContent = o.content || "";
+      } catch (e) {
+        viewer.textContent = "Error cargando output.";
+      }
+    };
+
+    return row;
+  }
+
+  async function loadRecentTasks() {
+  const grid = document.getElementById("recentTasksGrid");
+  if (!grid) return;
+
+  try {
+    const data = await j(API + "/api/outputs");
+
+    // OJO: tu API devuelve { files: [...] }
+    const files = (data.files || []).slice(0, 5);
+
+    if (files.length === 0) {
+      grid.innerHTML = '<div class="task-card-empty">No hay tareas recientes.</div>';
+      return;
+    }
+
+    // Guardamos el "último visto" en localStorage
+    const LAST_SEEN_KEY = "openclaw_last_seen_output";
+    const lastSeen = localStorage.getItem(LAST_SEEN_KEY) || "";
+
+    grid.innerHTML = "";
+
+    files.forEach((f, idx) => {
+      const sizeKB = Math.round((f.size || 0) / 1024);
+
+      const card = document.createElement("div");
+      card.className = "task-card";
+      card.style.cursor = "pointer";
+
+      // NEW: la primera card (más reciente) si todavía no fue vista
+      const isNewest = idx === 0;
+      const isNew = isNewest && f.name !== lastSeen;
+
+      const nameWrap = document.createElement("div");
+      nameWrap.style.display = "flex";
+      nameWrap.style.alignItems = "center";
+      nameWrap.style.justifyContent = "space-between";
+      nameWrap.style.gap = "12px";
+
+      const nameEl = document.createElement("div");
+      nameEl.className = "task-card-name";
+      nameEl.textContent = f.name;
+
+      nameWrap.appendChild(nameEl);
+
+      if (isNew) {
+        card.classList.add("is-new");
+
+        const badge = document.createElement("span");
+        badge.className = "task-badge-new";
+        badge.innerHTML = `<span class="dot"></span> NEW`;
+        nameWrap.appendChild(badge);
+      }
+
+      const metaEl = document.createElement("div");
+      metaEl.className = "task-card-meta";
+      metaEl.innerHTML = `<span class="dot"></span><span>${sizeKB} KB</span>`;
+
+      const previewEl = document.createElement("div");
+      previewEl.className = "task-card-preview";
+      previewEl.textContent = "Click para ver en Viewer →";
+
+      card.appendChild(nameWrap);
+      card.appendChild(metaEl);
+      card.appendChild(previewEl);
+
+      card.addEventListener("click", async () => {
+        // marcar como visto
+        localStorage.setItem(LAST_SEEN_KEY, f.name);
+
+        // scroll al viewer
+        const viewerSection = document.getElementById("viewer");
+        viewerSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+        viewName.textContent = f.name;
+        viewer.textContent = "Cargando...";
+
+        try {
+          const o = await j(API + "/api/out/" + encodeURIComponent(f.name));
+          viewer.textContent = o.content || "";
+        } catch {
+          viewer.textContent = "Error cargando output.";
+        }
+
+        // refrescar cards para sacar NEW
+        loadRecentTasks();
+      });
+
+      grid.appendChild(card);
+    });
+
+  } catch (e) {
+    grid.innerHTML = '<div class="task-card-empty">No se pudieron cargar las tareas.</div>';
+  }
+}
+
+
+
+  async function refresh() {
+    try {
+      const st = await j(API + "/api/status");
+      setService(!!st.active);
+
+      const out = await j(API + "/api/outputs");
+      const files = (out.files || []).slice(0, 30);
+
+      outCount.textContent = `${files.length}`;
+      outputs.innerHTML = "";
+      files.forEach(f => outputs.appendChild(fileRow(f)));
+
+      if (!viewer.textContent.trim() && files[0]) {
+        outputs.firstChild?.click();
+      }
+    } catch (e) {
+      setService(false);
+    }
+  }
+
+  refresh();
+  loadRecentTasks();
+  setInterval(refresh, 2000);
+  setInterval(loadRecentTasks, 5000);
+})();
+</script>
+<script>
+(() => {
+  const API = "http://127.0.0.1:8787";
+  const el = document.getElementById("graph");
+  const pill = document.getElementById("graph-status");
+  const btnRefresh = document.getElementById("graph-refresh");
+  const btnFit = document.getElementById("graph-fit");
+
+  if (!el || typeof vis === "undefined") return;
+
+  let network = null;
+  let nodesDS = new vis.DataSet([]);
+  let edgesDS = new vis.DataSet([]);
+
+  function setPill(text, ok=true){
+    pill.textContent = text;
+    pill.style.borderColor = ok ? "rgba(108,92,231,.35)" : "rgba(255,80,80,.45)";
+    pill.style.color = ok ? "var(--accent-light)" : "#ffb3b3";
+    pill.style.background = ok ? "rgba(108,92,231,.10)" : "rgba(255,80,80,.10)";
+  }
+
+  function buildNetwork(){
+    const options = {
+  layout: {
+    hierarchical: {
+      enabled: true,
+      direction: "LR",        // Left -> Right
+      sortMethod: "directed",
+      levelSeparation: 180,
+      nodeSpacing: 140,
+      treeSpacing: 200
+    }
+  },
+  physics: false,
+  nodes: {
+    shape: "dot",
+    borderWidth: 2,
+    scaling: { min: 10, max: 26 },
+    font: { size: 12, color: "#e4e4ed" }
+  },
+  edges: {
+    arrows: { to: { enabled: true, scaleFactor: 0.55 } },
+    smooth: { type: "cubicBezier", forceDirection: "horizontal", roundness: 0.35 },
+    width: 1.1
+  },
+  interaction: {
+    hover: true,
+    tooltipDelay: 120
+  }
+};
+
+      
+
+
+
+    network = new vis.Network(el, { nodes: nodesDS, edges: edgesDS }, options);
+
+    network.on("click", (params) => {
+      if (!params.nodes?.length) return;
+      const id = params.nodes[0];
+      network.selectNodes([id]);
+      network.focus(id, { scale: 1.1, animation: { duration: 300 } });
+    });
+  }
+
+  function normalize(data){
+  const nodes = (data.nodes || []).map(n => {
+    const group = n.kind || "node";
+
+    let color;
+    if (group === "agent") color = { background: "#6c5ce7", border: "#a29bfe" };
+    else if (group === "day") color = { background: "#2ecc71", border: "#27ae60" };
+    else if (group === "output") color = { background: "#f1c40f", border: "#f39c12" };
+    else color = { background: "#555", border: "#777" };
+
+    const label =
+      group === "output"
+        ? (n.label || n.id).replace(/\.md$/,"").slice(0, 28) + (((n.label || "").length > 28) ? "…" : "")
+        : (n.label || n.id);
+
+    const title = [
+      `<b>${n.label || n.id}</b>`,
+      `<div>kind: ${group}</div>`,
+      n.state ? `<div>state: ${n.state}</div>` : ""
+    ].join("");
+
+    return {
+      id: n.id,
+      label,     // <- acá usamos el label recortado
+      group,
+      title,
+      color
+    };
+  });
+
+  const edges = (data.edges || []).map((e, i) => ({
+    id: e.id || `${e.from}->${e.to}#${i}`,
+    from: e.from,
+    to: e.to,
+    label: e.label ? e.label : undefined
+  }));
+
+  return { nodes, edges };
+}
+
+
+
+  async function load(){
+    try{
+      setPill("cargando…", true);
+      const res = await fetch(`${API}/graph.json`, { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      const norm = normalize(data);
+      nodesDS.clear(); edgesDS.clear();
+      nodesDS.add(norm.nodes);
+      edgesDS.add(norm.edges);
+
+      if (!network) buildNetwork();
+
+      setPill(`ok · ${norm.nodes.length} nodos · ${norm.edges.length} links`, true);
+    } catch(err){
+      console.error(err);
+      setPill("error al cargar", false);
+    }
+  }
+
+  btnRefresh?.addEventListener("click", load);
+  btnFit?.addEventListener("click", () => network && network.fit({ animation: { duration: 300 } }));
+
+  // primera carga + auto refresh
+  load();
+  setInterval(load, 8000);
+})();
+</script>
+
+</body>
+</html>

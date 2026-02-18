@@ -1,0 +1,15 @@
+[Unit]
+Description=OpenClaw Ops Heartbeat
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/workspace/repo
+Environment=PYTHONPATH=%h/workspace/repo
+EnvironmentFile=-%h/workspace/repo/.env
+ExecStart=%h/workspace/repo/.venv/bin/python -m ops.heartbeat
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=default.target
